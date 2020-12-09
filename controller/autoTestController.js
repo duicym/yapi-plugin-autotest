@@ -28,11 +28,13 @@ class autoTestController extends baseController {
     }
 
     let result;
-    if (requestBody.id) {
-      result = await this.testModel.up(requestBody);
-    } else {
-      result = await this.testModel.save(requestBody);
+    let projectObj = await this.projectModel.get(projectId)
+
+    if(projectObj){
+      await this.testModel.delByProjectId(projectId);
     }
+    result = await this.testModel.save(requestBody);
+
 
     //操作定时任务
     if (requestBody.is_test_open) {
