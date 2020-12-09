@@ -2,31 +2,22 @@ const schedule = require('node-schedule');
 const openController = require('controllers/open.js');
 const projectModel = require('models/project.js');
 const testModel = require('./testModel.js');
+const interfaceCol = require('models/interfaceCol.js');
 const yapi = require('yapi.js')
 
 const jobMap = new Map();
 const axios  = require('axios');
 const dingRobotSender = require('./dding.js');
 const markdown = require('./markdown.js');
-let _config = {
-    host: 'http://localhost:3000'
-};
-
 
 class timingAutoUtils {
-    static get config() {
-        return _config;
-    }
-    static set config(options) {
-        if (options && typeof options == 'object') {
-            _config = Object.assign(_config, options);
-        }
-    }
+
     constructor(ctx) {
         this.ctx = ctx;
         this.openController = yapi.getInst(openController);
         this.testModel = yapi.getInst(testModel);
         this.projectModel = yapi.getInst(projectModel);
+        this.interfaceCol = yapi.getInst(interfaceCol);
         this.init()
     }
 
@@ -70,45 +61,45 @@ class timingAutoUtils {
     async doTestJob(projectId, autoTestUrl, testMode, dingUrl, uid) {
         yapi.commons.log('定时器触发, autoTestUrl:' + autoTestUrl + ",发送模式:" + testMode);
         let result = await axios.get(autoTestUrl);
-        let urlObj = this.getColObj(autoTestUrl)
+        let urlObj = new URL(autoTestUrl)
         //执行成功，发送钉钉消息
         if (testMode === "normal") {
-            await this.sendTo(dingUrl,projectId,result.data,urlObj.id)
+            await this.sendTo(dingUrl,projectId,result.data,urlObj)
         } else if(testMode === "warn" && result.data.message.failedNum!==0){
-            await this.sendTo(dingUrl,projectId,result.data,urlObj.id)
+            await this.sendTo(dingUrl,projectId,result.data,urlObj)
         }
         //记录日志
         this.saveTestLog(result.data, testMode,autoTestUrl, uid, projectId);
     }
 
-    async sendTo(url,projectId,data,colId) {
+    async sendTo(url,projectId,data,urlObj) {
         if(!data){
             return
         }
         let project = await this.projectModel.get(projectId);
 
         const title = this.buildTitle(project,data);
-        const text = this.buildText(projectId,project,data,title,colId);
+        const text = this.buildText(projectId,project,data,title,urlObj);
         let sender = new dingRobotSender(url);
         await sender.sendMarkdown(title, text);
     }
     buildTitle(project,data) {
         const name = project ? project.name : '有个项目';
         let pieces = [name];
-        const result = data.message.failedNum ===0 ? '自动测试全部通过' : '有测试用例失败';
+        const result = data.message.failedNum ===0 ? ':自动测试全部通过' : ':有测试用例失败';
         pieces.push(result, `[Yapi]`);
         return pieces.join('');
     }
 
-    buildText(projectId,project,data,title,colId) {
+    buildText(projectId,project,data,title,urlObj) {
         let result = data.message.msg;
         let failedNum = data.message.failedNum;
-        let projectLink = this.projectLink(projectId,colId)
         let pieces = [
             markdown.head3(title), markdown.NewLine,
             '结果: ', result, markdown.NewLine,
-            '项目: ', markdown.link(projectLink, project.name),markdown.NewLine,
-        ];
+            '环境: ', this.getEnvName(urlObj),markdown.NewLine,
+            '测试集合: ', this.interfaceColLink(projectId,urlObj),markdown.NewLine,
+        ]
         if(failedNum!==0){
             pieces.push('失败接口: ',markdown.NewLine)
             let failedList = data.list.filter(item=> item.code!==0)
@@ -120,20 +111,13 @@ class timingAutoUtils {
             pieces.push('太棒了！全部通过！', markdown.NewLine)
             pieces.push(markdown.image("https://tva1.sinaimg.cn/large/0081Kckwly1glhenyovruj30go0b4dgr.jpg",'全部通过'), markdown.NewLine)
         }
-        return pieces.join('');
+        return pieces.join('')
     }
-    projectLink(projectId,colId) {
-        return `${timingAutoUtils.config.host}/project/${projectId}/interface/col/${colId}`;
-    }
-    getColObj(url){
-        let params = {};
-        let urls = url.split("?");
-        let arr = urls[1].split("&");
-        for (let i = 0, l = arr.length; i < l; i++) {
-            let a = arr[i].split("=");
-            params[a[0]] = a[1];
-        }
-        return params;
+
+    interfaceColLink(projectId,urlObj) {
+        let colObj = this.interfaceCol.get(urlObj.id)
+        let colLink = `${urlObj.origin}/project/${projectId}/interface/col/${urlObj.id}`
+        return markdown.link(colLink, colObj.name)
     }
 
     /**
@@ -149,7 +133,7 @@ class timingAutoUtils {
             content: '自动测试结果:' + data.message.msg,
             type: 'project',
             uid: uid,
-            username: "自动同步用户",
+            username: "自动测试用户",
             typeid: projectId,
             data: data
         });
@@ -165,6 +149,15 @@ class timingAutoUtils {
         }
     }
 
+    getEnvName(urlObj) {
+        let envName = "默认"
+        urlObj.searchParams.forEach((value, name) => {
+            if(name.search("env")){
+                envName =  value
+            }
+        });
+        return envName
+    }
 }
 
 module.exports = timingAutoUtils;
