@@ -44,5 +44,5 @@ tsconfig.json
 client/plugin-module.js
 .vscode
 /iconfont
-./idea
 *.iml
+/.idea/
