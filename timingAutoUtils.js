@@ -118,7 +118,7 @@ class timingAutoUtils {
             }
         }else {
             pieces.push('太棒了！全部通过！', markdown.NewLine)
-            pieces.push(markdown.image("https://raw.githubusercontent.com/duicym/duicym.github.io/master/3ccdf0900edbd34cdf43c043bf71e460.jpeg",'全部通过'), markdown.NewLine)
+            pieces.push(markdown.image("https://tva1.sinaimg.cn/large/0081Kckwly1glhenyovruj30go0b4dgr.jpg",'全部通过'), markdown.NewLine)
         }
         return pieces.join('');
     }

@@ -254,7 +254,7 @@ export default class TimingAutoTest extends Component {
               })(<Input />)}
             </FormItem>
 
-            <FormItem {...formItemLayout} label={<span>node-schedule表达式(默认10分钟更新一次)&nbsp;<a href="https://blog.csdn.net/shouldnotappearcalm/article/details/89469047">参考</a></span>}>
+            <FormItem {...formItemLayout} label={<span>node-schedule表达式(默认10分钟更新一次)&nbsp;<a href="https://duicym.github.io/2020/12/08/node-schedule%E7%9A%84%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E8%A1%A8%E8%BE%BE%E5%BC%8F/">参考</a></span>}>
               {getFieldDecorator('test_cron', {
                 rules: [
                   {
