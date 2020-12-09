@@ -7,6 +7,8 @@ const yapi = require('yapi.js')
 
 const jobMap = new Map();
 const axios  = require('axios');
+const  { URL }  = require('url');
+
 const dingRobotSender = require('./dding.js');
 const markdown = require('./markdown.js');
 
@@ -60,8 +62,9 @@ class timingAutoUtils {
     //执行测试
     async doTestJob(projectId, autoTestUrl, testMode, dingUrl, uid) {
         yapi.commons.log('定时器触发, autoTestUrl:' + autoTestUrl + ",发送模式:" + testMode);
-        let result = await axios.get(autoTestUrl);
         let urlObj = new URL(autoTestUrl)
+
+        let result = await axios.get(urlObj.href);
         //执行成功，发送钉钉消息
         if (testMode === "normal") {
             await this.sendTo(dingUrl,projectId,result.data,urlObj)
@@ -79,7 +82,7 @@ class timingAutoUtils {
         let project = await this.projectModel.get(projectId);
 
         const title = this.buildTitle(project,data);
-        const text = this.buildText(projectId,project,data,title,urlObj);
+        const text = await this.buildText(projectId,project,data,title,urlObj);
         let sender = new dingRobotSender(url);
         await sender.sendMarkdown(title, text);
     }
@@ -91,14 +94,14 @@ class timingAutoUtils {
         return pieces.join('');
     }
 
-    buildText(projectId,project,data,title,urlObj) {
+    async buildText(projectId,project,data,title,urlObj) {
         let result = data.message.msg;
         let failedNum = data.message.failedNum;
         let pieces = [
             markdown.head3(title), markdown.NewLine,
             '结果: ', result, markdown.NewLine,
-            '环境: ', this.getEnvName(urlObj),markdown.NewLine,
-            '测试集合: ', this.interfaceColLink(projectId,urlObj),markdown.NewLine,
+            '环境: ', this.getEnvName(urlObj.searchParams),markdown.NewLine,
+            '测试集合: ', await this.interfaceColLink(projectId,urlObj),markdown.NewLine,
         ]
         if(failedNum!==0){
             pieces.push('失败接口: ',markdown.NewLine)
@@ -114,9 +117,10 @@ class timingAutoUtils {
         return pieces.join('')
     }
 
-    interfaceColLink(projectId,urlObj) {
-        let colObj = this.interfaceCol.get(urlObj.id)
-        let colLink = `${urlObj.origin}/project/${projectId}/interface/col/${urlObj.id}`
+    async interfaceColLink(projectId,urlObj) {
+        let colId = urlObj.searchParams.get('id')
+        let colObj = await this.interfaceCol.get(colId)
+        let colLink = `${urlObj.origin}/project/${projectId}/interface/col/${colId}`
         return markdown.link(colLink, colObj.name)
     }
 
@@ -149,10 +153,10 @@ class timingAutoUtils {
         }
     }
 
-    getEnvName(urlObj) {
+    getEnvName(searchParams) {
         let envName = "默认"
-        urlObj.searchParams.forEach((value, name) => {
-            if(name.search("env")){
+        searchParams.forEach((value, name) => {
+            if(!name.search("env")){
                 envName =  value
             }
         });
