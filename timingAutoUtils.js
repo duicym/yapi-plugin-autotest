@@ -108,7 +108,7 @@ class timingAutoUtils {
             let failedList = data.list.filter(item=> item.code!==0)
             for (let i = 0; i < failedList.length; i++) {
                 let item = failedList[i]
-                pieces.push(markdown.list(`【${item.name}】${item.path}`), markdown.NewLine)
+                pieces.push(markdown.list(`【${item.name}】    \n${item.path}`), markdown.NewLine)
             }
         }else {
             pieces.push('太棒了！全部通过！', markdown.NewLine)
