@@ -35,9 +35,7 @@ Github:[yapi-plugin-autotest](https://github.com/duicym/yapi-plugin-autotest)
 2. 服务端自动化测试URL获取，通过测试集合-》服务端测试获取URL，直接使用。
    ![image-20201210185950381](https://tva1.sinaimg.cn/large/0081Kckwly1gliyontx5fj31hb0kp4ak.jpg)
 3. 配置钉钉群机器人webhook。
-   ![image-20201210190235004](https://tva1.sinaimg.cn/large/0081Kckwly1gliyriddn6j30zo0u0gth.jpg)
-   ![image-20201210190310915](https://tva1.sinaimg.cn/large/0081Kckwly1gliys4vw4lj31070u0123.jpg)
-
+   <img src="https://tva1.sinaimg.cn/large/0081Kckwly1gliyriddn6j30zo0u0gth.jpg" alt="image-20201210190235004" style="zoom: 25%;" /><img src="https://tva1.sinaimg.cn/large/0081Kckwly1gliys4vw4lj31070u0123.jpg" alt="image-20201210190310915" style="zoom:25%;" />
 
 
 #### 3、如何查看结果
