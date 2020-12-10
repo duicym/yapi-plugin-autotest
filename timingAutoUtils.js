@@ -108,7 +108,7 @@ class timingAutoUtils {
             let failedList = data.list.filter(item=> item.code!==0)
             for (let i = 0; i < failedList.length; i++) {
                 let item = failedList[i]
-                pieces.push(markdown.list(`${item.name}(${item.path})`), markdown.NewLine)
+                pieces.push(markdown.list(`【${item.name}】${item.path}`), markdown.NewLine)
             }
         }else {
             pieces.push('太棒了！全部通过！', markdown.NewLine)
@@ -133,16 +133,35 @@ class timingAutoUtils {
      * @param {*} projectId
      */
     saveTestLog(data, testMode, autoTestUrl, uid, projectId) {
+        let failedNum = data.message.failedNum;
+        let result = data.message.msg;
+        let pieces = [
+            '自动测试结果:' ,data.message.msg,'<br>',
+        ]
+        if(failedNum){
+            pieces.push(this.red('失败接口: '),'<br>')
+            let failedList = data.list.filter(item=> item.code!==0)
+            for (let i = 0; i < failedList.length; i++) {
+                let item = failedList[i]
+                let errMsg = item.validRes[0].message
+                pieces.push(this.showList(`【${item.name}】${item.path}`))
+            }
+        }
+
         yapi.commons.saveLog({
-            content: '自动测试结果:' + data.message.msg,
+            content: pieces.join(' '),
             type: 'project',
             uid: uid,
             username: "自动测试用户",
             typeid: projectId,
-            data: data
         });
     }
-
+    red(text){
+        return '<span style="color: red">'+text +'</span>'
+    }
+    showList(test){
+        return '<li>'+test+'</li>'
+    }
     getUid(uid) {
         return parseInt(uid, 10);
     }
