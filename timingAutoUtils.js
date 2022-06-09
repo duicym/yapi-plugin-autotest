@@ -112,7 +112,7 @@ class timingAutoUtils {
             }
         }else {
             pieces.push('太棒了！全部通过！', markdown.NewLine)
-            pieces.push(markdown.image("https://tva1.sinaimg.cn/large/0081Kckwly1glhenyovruj30go0b4dgr.jpg",'全部通过'), markdown.NewLine)
+            pieces.push(markdown.image("https://tva1.sinaimg.cn/large/e6c9d24ely1h31q7vu42vg206j06jmy4.gif",'全部通过'), markdown.NewLine)
         }
         return pieces.join('')
     }
